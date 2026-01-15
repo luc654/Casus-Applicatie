@@ -1,0 +1,36 @@
+﻿@page "/accommodations"
+@using Casus_Applicatie.Models
+@using Microsoft.EntityFrameworkCore
+@inject CasusDbContext DbContext
+
+<PageTitle>Accommodations</PageTitle>
+
+<h1>Accommodations</h1>
+
+@if (accommodations == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!accommodations.Any())
+{
+    <p>No accommodations found.</p>
+}
+else
+{
+    <ul>
+        @foreach (var accommodation in accommodations)
+        {
+            <li>@accommodation.Name</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Accommodation>? accommodations;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Retrieve all accomodations from database
+        accommodations = await DbContext.Accommodations.ToListAsync();
+    }
+}
