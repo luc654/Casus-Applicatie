@@ -7,13 +7,16 @@ namespace Casus_Applicatie.Models;
 
 public partial class CasusDbContext : DbContext
 {
+
+    private readonly ILogger<CasusDbContext> _logger;
     public CasusDbContext()
     {
     }
 
-    public CasusDbContext(DbContextOptions<CasusDbContext> options)
+    public CasusDbContext(DbContextOptions<CasusDbContext> options, ILogger<CasusDbContext> logger)
         : base(options)
     {
+        _logger = logger;
     }
 
     public virtual DbSet<Accommodation> Accommodations { get; set; }
@@ -33,8 +36,14 @@ public partial class CasusDbContext : DbContext
     public virtual DbSet<Property> Properties { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseMySql("server=localhost;port=3323;database=Casus_Applicatie;user=root;password=510606", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.44-mysql"));
+    {
+        _logger.LogInformation("Attempting to configure");
+
+            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION");
+            _logger.LogInformation("Connection string: {ConnectionString}", connectionString);
+            optionsBuilder.UseMySql(connectionString, Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.44-mysql"));
+
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
