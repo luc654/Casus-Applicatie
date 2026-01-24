@@ -8,6 +8,9 @@ namespace Casus_Applicatie.Models;
 public partial class CasusDbContext : DbContext
 {
 
+    // This was all build from scaffolding the existing database?
+    // I don't know how, or why, or what any of this does. But it seems to be working. 
+    // See this as an eloquent model like in laravel, but a global instance for ALL tables / models. 
     private readonly ILogger<CasusDbContext> _logger;
     public CasusDbContext()
     {
