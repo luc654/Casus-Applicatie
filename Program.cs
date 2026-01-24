@@ -19,6 +19,10 @@ builder.Services.AddDbContext<CasusDbContext>(options =>
         new MySqlServerVersion(new Version(8, 0, 44))));
 
 
+// Add services to global scope (because ofcourse you have to do that manually)
+builder.Services.AddScoped<AccommodationService>();
+
+
 
 var app = builder.Build();
 

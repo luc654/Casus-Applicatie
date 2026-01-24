@@ -2,7 +2,7 @@
 @using Casus_Applicatie.Models
 @using Microsoft.EntityFrameworkCore
 @inject CasusDbContext DbContext
-
+@inject AccommodationService AccommodationService 
 <PageTitle>Accommodations</PageTitle>
 
 <h1>Accommodations</h1>
@@ -21,12 +21,13 @@ else
     
     <table class="table">
         <thead>
-        <tr>
+        <tr class="p-1">
             <th scope="col">#</th>
             <th scope="col">Naam</th>
             <th scope="col">Beschrijving</th>
             <th scope="col">Locatie</th>
-            <th scope="col">Prijs</th>
+            <th scope="col">Prijs</th> 
+            <th scope="col">Acties</th> 
         </tr>
         </thead>
         <tbody>
@@ -38,6 +39,7 @@ else
             <td>@accommodation.Description</td>
             <td>@accommodation.Location</td>
             <td>@accommodation.Price</td>
+            <button type="button" class="btn btn-warning">Warning</button>
         </tr>
         }
         </tbody>
@@ -55,4 +57,5 @@ else
         accommodations = await DbContext.Accommodations.ToListAsync();
     }
     
+}
 }

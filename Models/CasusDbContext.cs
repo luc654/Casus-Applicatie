@@ -22,7 +22,7 @@ public partial class CasusDbContext : DbContext
         _logger = logger;
     }
 
-    public virtual DbSet<Accommodation> Accommodations { get; set; }
+    public virtual DbSet<Accommodation>  Accommodations { get; set; }
 
     public virtual DbSet<Accommodationproperty> Accommodationproperties { get; set; }
 
