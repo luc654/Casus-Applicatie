@@ -147,6 +147,11 @@ else
                 <button class="btn btn-danger btn-sm" @onclick="() => DeleteCustomer(customer.CustomerId)">
                     Verwijderen!
                 </button>
+                <a href="/admin/customers/edit/@customer.CustomerId">
+                    <button class="btn btn-warning btn-sm">
+                        Aanpassen!
+                    </button>
+                </a>
             </td>
 
         </tr>
