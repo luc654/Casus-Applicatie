@@ -82,6 +82,13 @@ public partial class CasusDbContext : DbContext
 
         modelBuilder.Entity<Booking>(entity =>
         {
+            
+            // ensure that A.I. will work
+            modelBuilder.Entity<Booking>(entity =>
+            {
+                entity.Property(e => e.BookingId)
+                    .ValueGeneratedOnAdd();
+            });
             entity.HasKey(e => e.BookingId).HasName("PRIMARY");
 
             entity.Property(e => e.BookingId).ValueGeneratedNever();

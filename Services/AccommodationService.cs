@@ -27,4 +27,9 @@ public class AccommodationService
         _db.Accommodations.Add(accommodation);
         await _db.SaveChangesAsync();
     }
+
+    public async Task<List<Booking>> GetAllBookingsAsync(int id)
+    {
+        return await _db.Bookings.Where(b => b.AccommodationId == id).ToListAsync();
+    }
 }

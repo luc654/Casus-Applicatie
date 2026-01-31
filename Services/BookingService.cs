@@ -26,17 +26,19 @@ public class BookingService
     {
         return await _db.Bookings.Where(b => b.CustomerId == id).ToListAsync();
     }
-
+    public async Task CreateAsync(Booking booking)
+    {
+        _db.Bookings.Add(booking);
+        await _db.SaveChangesAsync();
+        
+        _db.ChangeTracker.Clear();
+    }
     public async Task deleteByIdAsync(int id)
     {
         var booking = await GetByIdAsync(id);
         _db.Bookings.Remove(booking);
         await _db.SaveChangesAsync();
     }
-    public async Task CreateAsync(Booking customer)
-    {
-        _db.Bookings.Add(customer);
-        await _db.SaveChangesAsync();
-    }
+
     
 }

@@ -12,6 +12,7 @@ namespace Casus_Applicatie.Models;
 public partial class Booking
 {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("bookingID")]
     public int BookingId { get; set; }
 

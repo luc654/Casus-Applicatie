@@ -1,6 +1,10 @@
 ﻿@page "/book/{Id:int}"
 @using Casus_Applicatie.Models
 @inject AccommodationService AccommodationService
+@inject CustomerService CustomerService
+@inject BookingService BookingService
+@inject IJSRuntime JS
+
 
 <PageTitle>Accommodation | Booking</PageTitle>
 
@@ -13,41 +17,74 @@
 }
 else
 {
-    <div class="container mt-4">
-        <div class="row g-4">
-            <InputDate @bind-Value="StartDate" />
-            <InputDate @bind-Value="EndDate" />
-        </div>
+    <div class="container">
+        
+    <div class=" mt-4 d-flex flex-column gap-xl-2 align-items-center">
 
-        <!-- Extra info section -->
-        <div class="row mt-5">
-            <div class="col">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h4 class="mb-3">Accommodation Details</h4>
-
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">
-                                <strong>Accommodation ID:</strong>
-                                @selectedAccommodation.AccommodationId
-                            </li>
-                            <li class="list-group-item">
-                                <strong>Location ID:</strong>
-                                @selectedAccommodation.LocationId
-                            </li>
-                            <li class="list-group-item">
-                                <strong>Bookings:</strong>
-                                @selectedAccommodation.Bookings.Count
-                            </li>
-                            <li class="list-group-item">
-                                <strong>Properties:</strong>
-                                @selectedAccommodation.Accommodationproperties.Count
-                            </li>
-                        </ul>
-                    </div>
+        <div class="col-md-6">
+            <EditForm Model="@tempData" OnValidSubmit="handleUserInput">
+                @validationError
+                <div class="form-floating mb-3">
+                    <InputNumber class="form-control" id="klantId" @bind-Value="tempData.Id"  placeholder="Klant ID" data-sb-validations="required,email"/>
+                    <label for="klantId">Klant ID</label>
+                    <div class="invalid-feedback" data-sb-feedback="klantId:required">Klant ID is required.</div>
                 </div>
+                <div class="form-floating mb-3">
+                    <InputNumber class="form-control"  @bind-Value="tempData.AmountOfPeople" id="aantalGasten" type="text" placeholder="Aantal gasten" data-sb-validations="required"/>
+                    <label for="aantalGasten">Aantal gasten</label>
+                    <div class="invalid-feedback" data-sb-feedback="aantalGasten:required">Aantal gasten is required.</div>
+                </div>
+                <div class="d-grid">
+                    <button class="btn btn-primary btn-lg " id="submitButton" type="submit">Verifieer</button>
+                </div>
+            </EditForm>
+        </div>
+        
+
+        <!-- date picker -->
+        <div class="col-md-6">
+            <div class="shadow-sm h-100">
+                <MudStack AlignItems="AlignItems.Center" Style="width:650px; height:450px" >
+                    <MudStack
+                        AlignItems="AlignItems.Center"
+                        Style="@($"width:650px; height:450px; {specialClass}")"
+                    >
+                        
+                        <MudDateRangePicker
+                            PickerVariant="@_variant"
+                            DateRangeChanged="OnDateRangeChanged"
+                            Margin="Margin.Dense"
+                            IsDateDisabledFunc="DisableSpecificDates"                            />
+                    </MudStack>
+
+                </MudStack>
+
             </div>
         </div>
+        
+        <div class="col-md-6">
+            <div class="shadow-sm h-100 mt-5 p-2">
+
+            <EditForm Model="@tempData" OnValidSubmit="makeBooking">
+
+                <p>Totale prijs: @price.ToString("C")</p>
+                @if (postNotification.Length == 0)
+                {
+                <button type="submit" class="btn btn-success">Booking opslaan</button>
+                }
+                else
+                {
+                    <a href="/overview">
+                        
+                    <button class="btn btn-danger btn-lg" type="button">Ga naar overzicht</button>
+                    </a>
+                }
+                <p>@postNotification</p>
+            </EditForm>
+            </div>
+        </div>
+        
+    </div>
     </div>
 }
 
@@ -55,16 +92,203 @@ else
 
     [Parameter]
     public int Id { get; set; }
+
+    private decimal price;
+    private PickerVariant _variant = PickerVariant.Static;
+    private DateRange _dateRange { get; set; }
+    
+    DateRange Range;
     private Accommodation selectedAccommodation;
+    TempData tempData = new TempData();
+    string validationError;
 
-
-    DateTime StartDate;
-    DateTime EndDate;
+    private string specialClass = "pointer-events:none";
+    private bool _datesEnabled = true;
+    private List<DateTime> _blockedDates;
+    private string postNotification = "";
+    
     protected override async Task OnInitializedAsync()
     {
         
         
         // Upon load of site, retrieve Accommodation from accommodationService using the slug (id)
-        selectedAccommodation = await AccommodationService.GetByIdAsync(Id);
+        selectedAccommodation = await AccommodationService.GetByIdAsync(Id); 
+        _blockedDates = await filterDate(Id);
+
     }
+
+    //  ----------------------------------- 
+    //  USER INPUT FUNCTIONS
+    //  -----------------------------------
+
+    private async Task handleUserInput()
+    {
+        int id = tempData.Id;
+        int amountOfPeople = tempData.AmountOfPeople;
+        
+        if (amountOfPeople < 1)
+        {
+
+            validationError = "Aantal mensen moeten 1 of meer zijn";
+            specialClass = "pointer-events:none";
+            return;
+        }
+
+
+        Customer customer = await CustomerService.GetByIdAsync(id);
+        if (customer == null)
+        {
+            validationError = "Gebruiker bestaat niet";
+            specialClass = "pointer-events:none";
+
+            return;
+        }   
+        // remove possible errors
+        validationError = "";
+
+        // Enable date input
+        specialClass = "";
+    }
+    
+
+
+    private class TempData
+    {
+        public int Id { get; set; }
+        public int AmountOfPeople { get; set; }
+    }
+    
+    //  ----------------------------------- 
+    //  DISABLE CERTAIN DATES FUNCTION
+    //  -----------------------------------
+
+
+    private async Task<List<DateTime>> filterDate(int id)
+    {
+        List<DateOnly> rawBookingDates = await getAllOccupiedDates(id);
+        List<DateTime> bookingDates = dateOnly2dateTime(rawBookingDates);
+        return bookingDates;
+    }
+    
+    private async Task<List<DateOnly>> getAllOccupiedDates(int id)
+    {
+        List<DateOnly> bookingDates = new List<DateOnly>();
+        // step 1. Retrieve all bookings
+
+        List<Booking> bookingList = await AccommodationService.GetAllBookingsAsync(id);
+        // step 2. Iterate through bookings and add
+
+        foreach (var booking in bookingList)
+        {
+            DateOnly startDate = booking.ArrivalDate.Value;
+            DateOnly endDate = booking.DepartureDate.Value;
+            IEnumerable<DateOnly> betweenDates = GetDateRange(startDate, endDate);
+            
+            bookingDates = betweenDates.ToList();
+            bookingDates.Add(startDate);
+            bookingDates.Add(endDate);
+        }
+        return bookingDates;
+        
+
+    }
+            
+
+            //https://stackoverflow.com/questions/3738748/create-an-array-or-list-of-all-dates-between-two-dates
+            private static IEnumerable<DateOnly> GetDateRange(DateOnly startDate, DateOnly endDate)
+            {
+                if (endDate < startDate)
+                    yield break; // Or throw an exception depending on your needs
+
+                for (var date = startDate; date <= endDate; date = date.AddDays(1))
+                {
+                    yield return date;
+                }
+            }
+
+            private static List<DateTime> dateOnly2dateTime(IEnumerable<DateOnly> dates)
+            {
+                List<DateTime> newList = new List<DateTime>();
+                
+                foreach (var dateOnly in dates)
+                {
+                    newList.Add(dateOnly.ToDateTime(TimeOnly.MinValue));
+                }
+                return newList;
+            }
+
+
+
+
+    private bool DisableSpecificDates(DateTime date)
+    {
+        if (_blockedDates == null)
+        {
+            return false;
+        }
+        return _blockedDates.Contains(date.Date);
+    }
+    
+    
+    //  ----------------------------------- 
+    //  SAVEEEE THE BOOKING FUNCTIONSSS
+    //  https://www.youtube.com/watch?v=Wbpj0yo9BBc
+    //  -----------------------------------
+    
+    private void OnDateRangeChanged(DateRange newRange)
+    {
+        _dateRange = newRange;
+
+        // Only calculate if both dates are selected
+        if (_dateRange?.Start != null && _dateRange?.End != null)
+        {
+            calculateTotalPrice();
+        }
+    }
+
+    private void calculateTotalPrice()
+    {
+        // 1. Convert to DateOnly
+        DateOnly start = DateOnly.FromDateTime(_dateRange.Start.Value);
+        DateOnly end = DateOnly.FromDateTime(_dateRange.End.Value);
+
+        // 2. Use DayNumber to get the absolute difference in days
+        int dayDifference = end.DayNumber - start.DayNumber;
+
+        // Optional: Usually you want to charge for the nights, 
+        // but if you want to include the last day, add +1.
+        // int stayDuration = dayDifference; 
+
+        price = (selectedAccommodation.Price ?? 0) * dayDifference;
+    }
+    
+    private async Task makeBooking()
+    {
+        int customerId = tempData.Id;
+        int amountOfPeople = tempData.AmountOfPeople;
+        DateOnly arrivalDate = DateOnly.FromDateTime(_dateRange.Start.Value);
+        DateOnly departureDate = DateOnly.FromDateTime(_dateRange.End.Value);
+        DateOnly bookingDate = DateOnly.FromDateTime(DateTime.Now);
+
+        Booking booking = new Booking()
+        {
+            CustomerId = customerId,
+            ArrivalDate = arrivalDate,
+            DepartureDate = departureDate,
+            NumberOfGuests = amountOfPeople,
+            TotalPrice = price,
+            BookingDate = bookingDate,
+            AccommodationId = Id,
+
+        };
+        await BookingService.CreateAsync(booking);
+        
+        _dateRange = null;
+        price = 0;
+        postNotification = "Booking aangemaakt!";
+    }
+    
+    
+    
+
 }
