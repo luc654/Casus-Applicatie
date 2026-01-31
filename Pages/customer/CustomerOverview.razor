@@ -2,13 +2,101 @@
 @using Casus_Applicatie.Models
 @using Microsoft.EntityFrameworkCore
 @inject CasusDbContext DbContext
-@inject CustomerService CustomerService 
-    <PageTitle>Customers | Overview</PageTitle>
+@inject CustomerService CustomerService
 
-    <h1>Customers | Overview</h1>
+<PageTitle>Customers | Overview</PageTitle>
 
-    @if (customers == null)
-{   
+
+<style>
+    body {
+        color: #404E67;
+        background: #F5F7FA;
+        font-family: 'Open Sans', sans-serif;
+    }
+    .table-wrapper {
+        width: 2000px;
+        margin: 30px auto;
+        background: #fff;
+        padding: 20px;
+        box-shadow: 0 1px 1px rgba(0,0,0,.05);
+    }
+    .table-title {
+        padding-bottom: 10px;
+        margin: 0 0 10px;
+    }
+    .table-title h2 {
+        margin: 6px 0 0;
+        font-size: 22px;
+    }
+    .table-title .add-new {
+        float: right;
+        height: 30px;
+        font-weight: bold;
+        font-size: 12px;
+        text-shadow: none;
+        min-width: 100px;
+        border-radius: 50px;
+        line-height: 13px;
+    }
+    .table-title .add-new i {
+        margin-right: 4px;
+    }
+    table.table {
+        table-layout: fixed;
+    }
+    table.table tr th, table.table tr td {
+        border-color: #e9e9e9;
+    }
+    table.table th i {
+        font-size: 13px;
+        margin: 0 5px;
+        cursor: pointer;
+    }
+    table.table th:last-child {
+        width: 100px;
+    }
+    table.table td a {
+        cursor: pointer;
+        display: inline-block;
+        margin: 0 5px;
+        min-width: 24px;
+    }
+    table.table td a.add {
+        color: #27C46B;
+    }
+    table.table td a.edit {
+        color: #FFC107;
+    }
+    table.table td a.delete {
+        color: #E34724;
+    }
+    table.table td i {
+        font-size: 19px;
+    }
+    table.table td a.add i {
+        font-size: 24px;
+        margin-right: -1px;
+        position: relative;
+        top: 3px;
+    }
+    table.table .form-control {
+        height: 32px;
+        line-height: 32px;
+        box-shadow: none;
+        border-radius: 2px;
+    }
+    table.table .form-control.error {
+        border-color: #f50000;
+    }
+    table.table td .add {
+        display: none;
+    }
+</style>
+
+<h1>Customers | Overview</h1>
+
+@if (customers == null)
+{
     <p><em>Loading...</em></p>
 }
 else if (!customers.Any())
@@ -17,49 +105,58 @@ else if (!customers.Any())
 }
 else
 {
-    
-    
-    <div class="container my-5">
-        <table class="table">
-            <thead>
-            <tr class="p-1">
-                <th scope="col">#</th>
-                <th scope="col">Naam</th>
-                <th scope="col">Beschrijving</th>
-                <th scope="col">Locatie</th>
-                <th scope="col">Prijs</th> 
-                <th scope="col">Acties</th> 
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var customer in customers)
-            {
-                <tr>
-                    <td>@customer.CustomerId</td>
-                    <td>@customer.FirstName</td>
-                    <td>@customer.LastName</td>
-                    <td>@customer.Email</td>
-                    <td>@customer.PhoneNumber</td>
-                    <button type="button" class="btn btn-warning">Warning</button>
-                </tr>
-            }
-            </tbody>
-        </table>
+    <div class="">
+    <div class="table-responsive">
+        <div class="table-wrapper">
+            <div class="table-title">
+                <div class="row">
+                    <div class="col-sm-8"><h2>Customer <b>Details</b></h2></div>
+                    <div class="col-sm-4">
+                        <a href="/admin/customers/add">
+                        <button type="button" class="btn btn-info add-new"><i class="fa fa-plus"></i>+ Voeg gebruiker toe</button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 20px">#</th>
+                        <th scope="col" style="width: 120px">Voornaam</th>
+                        <th scope="col" style="width: 120px">Achternaam</th>
+                        <th scope="col" style="width: 120px">Email</th>
+                        <th scope="col" style="width: 200px">Telefoonnummer</th>
+                        <th scope="col" style="width: 100px">Acties</th>
+                    </tr>
+                </thead>
+                <tbody>
+    @foreach (var customer in customers)
+    {
+        <tr>
+            <th scope="row" style="color: #666666;">@customer.CustomerId</th>
+            <td>@customer.FirstName</td>
+            <td>@customer.LastName</td>
+            <td>@customer.Email</td>
+            <td>@customer.PhoneNumber</td>
+            <td>
+                <a class="delete" title="Delete" data-toggle="tooltip"><i class="">Verwijderen!</i></a>
+            </td>
+        </tr>
+    }
+    </tbody>
+            </table>
         </div>
-
+    </div>
+</div>     
 }
 
-    @code {
+@code {
+    private List<Customer> customers;
 
-        // Specify that this Id is a parameter? Do i need to add set to this? why can i set my parameter? I miss laravel man
-        [Parameter]
-        public int Id { get; set; }
-        private List<Customer> customers;
-        protected override async Task OnInitializedAsync()
-        {
-        
-        
-            // Upon load of site, retrieve Accommodation from accommodationService using the slug (id)
-            customers = await CustomerService.GetAllAsync();
-        }
+    protected override async Task OnInitializedAsync()
+    {
+        // Upon load of site, retrieve Accommodation from accommodationService using the slug (id)
+        customers = await CustomerService.GetAllAsync();
     }
+
+}
