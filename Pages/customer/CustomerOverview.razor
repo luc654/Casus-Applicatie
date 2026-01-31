@@ -1,0 +1,65 @@
+@page "/admin/customers/overview"
+@using Casus_Applicatie.Models
+@using Microsoft.EntityFrameworkCore
+@inject CasusDbContext DbContext
+@inject CustomerService CustomerService 
+    <PageTitle>Customers | Overview</PageTitle>
+
+    <h1>Customers | Overview</h1>
+
+    @if (customers == null)
+{   
+    <p><em>Loading...</em></p>
+}
+else if (!customers.Any())
+{
+    <p>No customers found.</p>
+}
+else
+{
+    
+    
+    <div class="container my-5">
+        <table class="table">
+            <thead>
+            <tr class="p-1">
+                <th scope="col">#</th>
+                <th scope="col">Naam</th>
+                <th scope="col">Beschrijving</th>
+                <th scope="col">Locatie</th>
+                <th scope="col">Prijs</th> 
+                <th scope="col">Acties</th> 
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var customer in customers)
+            {
+                <tr>
+                    <td>@customer.CustomerId</td>
+                    <td>@customer.FirstName</td>
+                    <td>@customer.LastName</td>
+                    <td>@customer.Email</td>
+                    <td>@customer.PhoneNumber</td>
+                    <button type="button" class="btn btn-warning">Warning</button>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+
+}
+
+    @code {
+
+        // Specify that this Id is a parameter? Do i need to add set to this? why can i set my parameter? I miss laravel man
+        [Parameter]
+        public int Id { get; set; }
+        private List<Customer> customers;
+        protected override async Task OnInitializedAsync()
+        {
+        
+        
+            // Upon load of site, retrieve Accommodation from accommodationService using the slug (id)
+            customers = await CustomerService.GetAllAsync();
+        }
+    }
