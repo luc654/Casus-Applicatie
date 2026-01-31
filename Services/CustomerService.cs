@@ -27,6 +27,9 @@ public class CustomerService
     {
         _db.Customers.Add(customer);
         await _db.SaveChangesAsync();
+        
+        _db.ChangeTracker.Clear();
+
     }
     
     // this was a fun function to make (not) AND I WROTE IT ALL MYSELF, DONT YOU DARE THINK A CLANKER WROTE THIS
