@@ -3,6 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject CasusDbContext DbContext
 @inject CustomerService CustomerService
+@inject IJSRuntime JS
 
 <PageTitle>Customers | Overview</PageTitle>
 
@@ -113,11 +114,15 @@ else
                     <div class="col-sm-8"><h2>Customer <b>Details</b></h2></div>
                     <div class="col-sm-4">
                         <a href="/admin/customers/add">
-                        <button type="button" class="btn btn-info add-new"><i class="fa fa-plus"></i>+ Voeg gebruiker toe</button>
+                            <button type="button" class="btn btn-info add-new"><i class="fa fa-plus"></i>+ Voeg gebruiker toe</button>
                         </a>
                     </div>
                 </div>
             </div>
+            @if (!string.IsNullOrEmpty(removalStatus))
+            {
+                <p>@removalStatus</p>
+            }
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -139,8 +144,11 @@ else
             <td>@customer.Email</td>
             <td>@customer.PhoneNumber</td>
             <td>
-                <a class="delete" title="Delete" data-toggle="tooltip"><i class="">Verwijderen!</i></a>
+                <button class="btn btn-danger btn-sm" @onclick="() => DeleteCustomer(customer.CustomerId)">
+                    Verwijderen!
+                </button>
             </td>
+
         </tr>
     }
     </tbody>
@@ -152,11 +160,35 @@ else
 
 @code {
     private List<Customer> customers;
-
+    private string removalStatus;
+    
+    
     protected override async Task OnInitializedAsync()
     {
         // Upon load of site, retrieve Accommodation from accommodationService using the slug (id)
         customers = await CustomerService.GetAllAsync();
     }
+    
 
+    private async Task DeleteCustomer(int id)
+    {
+        bool status = await JS.InvokeAsync<bool>("confirm", "Weet je zeker dat je gebruiker " + id + " wilt verwijderen? Alle reserveringen worden ook verwijderd...");
+        bool deleteStatus;
+        if (status)
+        {
+            deleteStatus = await CustomerService.RemoveAsync(id);
+
+            if (deleteStatus)
+            {
+                removalStatus = "Verwijderen succesvol";
+                
+                // This is really cool. By calling this function the table gets reset. First cool thing about EF till now.
+                customers = await CustomerService.GetAllAsync();
+            }
+            else
+            {
+                removalStatus = "Verwijderen onsuccesvol";
+            }
+        }
+    }
 }

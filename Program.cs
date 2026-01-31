@@ -20,6 +20,7 @@ builder.Services.AddDbContext<CasusDbContext>(options =>
 
 
 // Add services to global scope (because ofcourse you have to do that manually)
+builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<AccommodationService>();
 builder.Services.AddScoped<CustomerService>();
 
