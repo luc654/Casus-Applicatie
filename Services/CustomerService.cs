@@ -67,10 +67,14 @@ public class CustomerService
         // SaveChangesAsync retuns... and i kid you not.... the amount of affected rows as an int. 
         int changes = await _db.SaveChangesAsync();
         
-        if  (changes > 0)
-        {
-            return true;
-        }
-        return false;
+       return changes > 0;
+    }
+
+
+    public async Task<bool> UpdateAsync(Customer customer)
+    {
+     _db.Customers.Update(customer);
+     int  changes = await _db.SaveChangesAsync();
+     return changes > 0;
     }
 }

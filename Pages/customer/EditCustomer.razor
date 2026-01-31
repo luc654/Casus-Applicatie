@@ -1,0 +1,114 @@
+@page "/admin/customers/edit/{Id:int}"
+@using Casus_Applicatie.Models
+@inject IJSRuntime JS
+@inject CustomerService CustomerService
+
+<PageTitle>Customers | Add new</PageTitle>
+
+@* https://startbootstrap.com/sb-form-builder *@
+
+
+<div class="container px-5 my-5">
+    <EditForm Model="NewCustomer" OnValidSubmit="editCustomer">
+        <DataAnnotationsValidator />
+
+        <div class="d-grid mb-3"> <h1 class="display-6">Voeg een nieuwe gebruiker toe</h1> </div>
+        
+        <ValidationSummary />
+        
+        <div class="form-floating mb-3">
+            <InputText class="form-control" id="voornaam" @bind-Value="NewCustomer.FirstName" placeholder="Voornaam"/>
+            <label for="voornaam">Voornaam</label>
+        </div>
+
+        <div class="form-floating mb-3">
+            <InputText class="form-control" id="achternaam" @bind-Value="NewCustomer.LastName" placeholder="Achternaam"/>
+            <label for="achternaam">Achternaam</label>
+        </div>
+
+        <div class="form-floating mb-3">
+            <InputText class="form-control" id="emailAdres" @bind-Value="NewCustomer.Email" placeholder="Email adres"/>
+            <label for="emailAdres">Email adres</label>
+        </div>
+
+        <div class="form-floating mb-3">
+            <InputText class="form-control" id="telefoonnummer" @bind-Value="NewCustomer.PhoneNumber" placeholder="Telefoonnummer"/>
+            <label for="telefoonnummer">Telefoonnummer</label>
+        </div>
+
+
+        <div class="d-grid mb-3">
+            <button class="btn btn-danger btn-lg" type="button" @onclick="GoBack">Terug</button>
+        </div>
+
+        <div class="d-grid">
+            <button class="btn btn-primary btn-lg" type="submit">Aanpassen</button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(LastSubmitResult))
+        {
+            <h2>Last submit status: @LastSubmitResult</h2>
+        }
+    </EditForm>
+</div>
+
+
+@code {
+    
+    
+    
+    [Parameter]
+    public int Id { get; set; }
+
+    private Customer selectedCustomer;
+    private Customer NewCustomer = new Customer(); // the object bound to the form
+
+    protected override async Task OnInitializedAsync()
+    {
+        selectedCustomer = await CustomerService.GetByIdAsync(Id);
+
+        if (selectedCustomer != null)
+        {
+            // Inject information into the form
+            NewCustomer.FirstName = selectedCustomer.FirstName;
+            NewCustomer.LastName = selectedCustomer.LastName;
+            NewCustomer.Email = selectedCustomer.Email;
+            NewCustomer.PhoneNumber = selectedCustomer.PhoneNumber;
+        }
+    }
+    
+    private string LastSubmitResult;
+
+    private async Task GoBack()
+    {
+        await JS.InvokeVoidAsync("history.back");
+    }
+
+    private async Task editCustomer()
+    {
+        try
+        {
+            // Retrieve information from Form
+            selectedCustomer.FirstName = NewCustomer.FirstName;
+            selectedCustomer.LastName = NewCustomer.LastName;
+            selectedCustomer.Email = NewCustomer.Email;
+            selectedCustomer.PhoneNumber = NewCustomer.PhoneNumber;
+            selectedCustomer.CustomerId = Id;
+            
+            bool status = await CustomerService.UpdateAsync(selectedCustomer);
+            if (status)
+            {
+            LastSubmitResult = "Gebruiker Aangepast!";
+            }
+            else
+            {
+                LastSubmitResult = "Gebruiker Niet Aangepast!";
+            }
+            NewCustomer = new Customer(); // reset form
+        }
+        catch (Exception ex)
+        {
+            LastSubmitResult = $"Error: {ex.Message}";
+        }
+    }
+}
