@@ -123,40 +123,45 @@ else
             {
                 <p>@removalStatus</p>
             }
-            <table class="table table-bordered">
+            <table class="table table-bordered" style="table-layout: fixed; width: auto;">
                 <thead>
-                    <tr>
-                        <th scope="col" style="width: 20px">#</th>
-                        <th scope="col" style="width: 120px">Voornaam</th>
-                        <th scope="col" style="width: 120px">Achternaam</th>
-                        <th scope="col" style="width: 120px">Email</th>
-                        <th scope="col" style="width: 200px">Telefoonnummer</th>
-                        <th scope="col" style="width: 100px">Acties</th>
-                    </tr>
+                <tr>
+                    <th style="width: 1%">#</th>
+                    <th style="width: 10%">Voornaam</th>
+                    <th style="width: 10%">Achternaam</th>
+                    <th style="width: 10%">Email</th>
+                    <th style="width: 10%">Telefoonnummer</th>
+                    <th style="width: 20%">Acties</th>
+                </tr>
                 </thead>
                 <tbody>
-    @foreach (var customer in customers)
-    {
-        <tr>
-            <th scope="row" style="color: #666666;">@customer.CustomerId</th>
-            <td>@customer.FirstName</td>
-            <td>@customer.LastName</td>
-            <td>@customer.Email</td>
-            <td>@customer.PhoneNumber</td>
-            <td>
-                <button class="btn btn-danger btn-sm" @onclick="() => DeleteCustomer(customer.CustomerId)">
-                    Verwijderen!
-                </button>
-                <a href="/admin/customers/edit/@customer.CustomerId">
-                    <button class="btn btn-warning btn-sm">
-                        Aanpassen!
-                    </button>
-                </a>
-            </td>
+                @foreach (var customer in customers)
+                {
+                    <tr>
+                        <th scope="row" style="color: #666666;">@customer.CustomerId</th>
+                        <td>@customer.FirstName</td>
+                        <td>@customer.LastName</td>
+                        <td>@customer.Email</td>
+                        <td>@customer.PhoneNumber</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteCustomer(customer.CustomerId)">
+                                Verwijderen!
+                            </button>
+                            <a href="/admin/customers/edit/@customer.CustomerId">
+                                <button class="btn btn-warning btn-sm">
+                                    Aanpassen!
+                                </button>
+                            </a>
+                            <a href="/admin/customers/edit/@customer.CustomerId">
+                                <button class="btn btn-primary btn-sm">
+                                    Automatisch matchen!
+                                </button>
+                            </a>
+                        </td>
 
-        </tr>
-    }
-    </tbody>
+                    </tr>
+                }
+                </tbody>
             </table>
         </div>
     </div>
