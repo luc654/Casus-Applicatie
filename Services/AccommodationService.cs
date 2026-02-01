@@ -32,4 +32,5 @@ public class AccommodationService
     {
         return await _db.Bookings.Where(b => b.AccommodationId == id).ToListAsync();
     }
+    
 }

@@ -1,6 +1,8 @@
 ﻿@page "/detail/{Id:int}"
 @using Casus_Applicatie.Models
+@using Casus_Applicatie.Services
 @inject AccommodationService AccommodationService
+@inject PropertyService PropertyService
 
 <PageTitle>Accommodation | Details</PageTitle>
 
@@ -43,7 +45,7 @@ else
                         <h4 class="text-success mb-3">
                             @if (selectedAccommodation.Price.HasValue)
                             {
-                                @($"€ {selectedAccommodation.Price:0.00} / night")
+                                @($"€ {selectedAccommodation.Price:0.00} / nacht")
                             }
                             else
                             {
@@ -53,11 +55,11 @@ else
 
                         <hr />
 
-                        <h5>Description</h5>
+                        <h5>Beschrijving</h5>
                         <p>
                             @(
                                 string.IsNullOrWhiteSpace(selectedAccommodation.Description)
-                                ? "No description available."
+                                ? "Geen beschrijving beschikbaar..."
                                 : selectedAccommodation.Description
                             )
                         </p>
@@ -83,25 +85,26 @@ else
             <div class="col">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h4 class="mb-3">Accommodation Details</h4>
+                        <h4 class="mb-3">Accommodatie Details</h4>
 
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">
-                                <strong>Accommodation ID:</strong>
+                                <strong>Accommodatie ID:</strong>
                                 @selectedAccommodation.AccommodationId
                             </li>
                             <li class="list-group-item">
-                                <strong>Location ID:</strong>
+                                <strong>Locatie ID:</strong>
                                 @selectedAccommodation.LocationId
                             </li>
                             <li class="list-group-item">
-                                <strong>Bookings:</strong>
-                                @selectedAccommodation.Bookings.Count
+                                <strong>Eigenschappen</strong>
                             </li>
+                            @foreach (var property in allProperties)
+                            {
                             <li class="list-group-item">
-                                <strong>Properties:</strong>
-                                @selectedAccommodation.Accommodationproperties.Count
+                                @property.Name
                             </li>
+                            }
                         </ul>
                     </div>
                 </div>
@@ -116,11 +119,14 @@ else
     [Parameter]
     public int Id { get; set; }
     private Accommodation selectedAccommodation;
+    private List<Property> allProperties = new List<Property>();
     protected override async Task OnInitializedAsync()
     {
         
         
         // Upon load of site, retrieve Accommodation from accommodationService using the slug (id)
         selectedAccommodation = await AccommodationService.GetByIdAsync(Id);
+        allProperties = await PropertyService.GetPropertiesByAccommodation(Id);
+
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Casus_Applicatie.Data;
 using Casus_Applicatie.Models;
+using Casus_Applicatie.Services;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
 using MudBlazor.Services;
@@ -26,6 +27,7 @@ builder.Services.AddDbContext<CasusDbContext>(options =>
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<AccommodationService>();
 builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<PropertyService>();
 
 
 // Add mudshark lib
