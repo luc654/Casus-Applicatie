@@ -80,4 +80,11 @@ public class CustomerService
      int  changes = await _db.SaveChangesAsync();
      return changes > 0;
     }
+
+    public async Task<List<Customerwish>> getCustomerWishesById(int id)
+    {
+        return await _db.Customerwishes
+            .Where(ap => ap.CustomerId == id)
+            .ToListAsync();
+    }
 }
